@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.popularmovies.R;
@@ -37,6 +38,7 @@ public class MovieGridAdapter extends RecyclerView.Adapter<MovieGridAdapter.Movi
 
     public class MovieGridAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         ImageView moviePosterImageView;
+        TextView movieTitle;
 
         public MovieGridAdapterViewHolder(View view) {
             super(view);
@@ -54,6 +56,7 @@ public class MovieGridAdapter extends RecyclerView.Adapter<MovieGridAdapter.Movi
                     }
                 }
             });
+            movieTitle = view.findViewById(R.id.movie_title);
         }
 
         @Override
@@ -88,8 +91,8 @@ public class MovieGridAdapter extends RecyclerView.Adapter<MovieGridAdapter.Movi
         // load image from web using Picasso
         Picasso.with(mContext)
                 .load(movie.getPoster())
-                .placeholder(R.color.colorAccent)
                 .into(holder.moviePosterImageView);
+        holder.movieTitle.setText(movie.getTitle());
     }
 
     @Override
