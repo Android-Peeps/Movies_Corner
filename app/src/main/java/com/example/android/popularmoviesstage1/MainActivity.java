@@ -1,13 +1,18 @@
 package com.example.android.popularmoviesstage1;
 
+import android.app.ActivityOptions;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.BottomNavigationView;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import com.example.android.popularmoviesstage1.Movie.MovieResult;
@@ -26,10 +31,12 @@ public class MainActivity extends AppCompatActivity implements MovieGridAdapter.
     private RecyclerView mRecyclerView;
     private MovieGridAdapter mAdapter;
     String baseBackDropUrl = "https://image.tmdb.org/t/p/w185";
+    private View loading;
+    private BottomNavigationView navigationView;
 
     private List<Movie> mMovieList;
 
-   public static final String API_KEY = "API_KEY";
+   public static final String API_KEY = "d5485da38eea2902bd371827a82faafd";
    private String getParameter;
    private static final String TOP_RATED = "top_rated";
    private static final String MOST_POPULAR = "popular";
@@ -45,14 +52,36 @@ public class MainActivity extends AppCompatActivity implements MovieGridAdapter.
         mMovieList = new ArrayList<>();
 
         mRecyclerView = findViewById(R.id.rv_movie_posters);
+        loading = findViewById(R.id.loading);
+        navigationView = findViewById(R.id.navigation_view);
 
         fetchMovieList(getParameter);
 
+
+        BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.top_rated:
+                        getParameter = TOP_RATED;
+                        fetchMovieList(getParameter);
+                        return true;
+
+                    case R.id.most_popular:
+                        getParameter = MOST_POPULAR;
+                        fetchMovieList(getParameter);
+                        return true;
+                }
+                return false;
+            }
+        };
+        navigationView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
     }
 
     private void fetchMovieList(String getParameter) {
         mRecyclerView.setLayoutManager(new GridLayoutManager(this, 3));
-
+        loading.setVisibility(View.VISIBLE);
+        mRecyclerView.setVisibility(View.GONE);
         mAdapter = new MovieGridAdapter(this);
         mRecyclerView.setAdapter(mAdapter);
         mAdapter.setOnItemClickListener(MainActivity.this);
@@ -63,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements MovieGridAdapter.
         }
         mAdapter.setmMovieList(movies);
 
-// Retrofit
+        // Retrofit
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ApiInterface.MOVIE_DB_BASE_MOVIE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -77,8 +106,12 @@ public class MainActivity extends AppCompatActivity implements MovieGridAdapter.
             @Override
             public void onResponse(retrofit2.Call<Movie.MovieResult> call, Response<MovieResult> response) {
                 Movie.MovieResult result = response.body();
-                mAdapter.setmMovieList(result.getResults());
-                mMovieList = result.getResults();
+                if (result !=null) {
+                    mAdapter.setmMovieList(result.getResults());
+                    mMovieList = result.getResults();
+                    mRecyclerView.setVisibility(View.VISIBLE);
+                    loading.setVisibility(View.GONE);
+                }
             }
 
             @Override
@@ -91,42 +124,16 @@ public class MainActivity extends AppCompatActivity implements MovieGridAdapter.
 
     @Override
     public void onItemClick(int position) {
-//        Movie movie = mMovieList.get(getAdapterPosition());
         Movie movie = mMovieList.get(position);
         Intent intent = new Intent(this, MovieDetailActivity.class);
+        ActivityOptions options = ActivityOptions.makeCustomAnimation(getApplicationContext(), android.R.anim.slide_in_left, android.R.anim.slide_out_right);
         intent.putExtra("posterImage", movie.getPoster());
         intent.putExtra("backdrop", baseBackDropUrl + movie.getBackdrop());
         intent.putExtra("title", movie.getTitle());
         intent.putExtra("description", movie.getDescription());
         intent.putExtra("userRating", movie.getUserRating());
         intent.putExtra("releaseDate", movie.getReleaseDate());
-        startActivity(intent);
+        startActivity(intent, options.toBundle());
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-
-            case R.id.top_rated:
-                Toast.makeText(this, "Top Rated", Toast.LENGTH_SHORT).show();
-                getParameter = TOP_RATED;
-                fetchMovieList(getParameter);
-                return true;
-
-            case R.id.most_popular:
-                Toast.makeText(this, "Most Popular", Toast.LENGTH_SHORT).show();
-                getParameter = MOST_POPULAR;
-                fetchMovieList(getParameter);
-                return true;
-
-                default:
-                    return super.onOptionsItemSelected(item);
-        }
-    }
 }
