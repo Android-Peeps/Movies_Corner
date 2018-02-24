@@ -35,16 +35,12 @@ public class MovieDetailActivity extends AppCompatActivity {
         String backdropImageUrl = intent.getStringExtra("backdrop");
         String moviePosterImageUrl = intent.getStringExtra("posterImage");
 
-//        mMoviePosterImage.setImageResource(getIntent().getIntExtra("posterImage", 0));
-
         Picasso.with(this)
                 .load(backdropImageUrl)
-                .placeholder(R.color.colorAccent)
                 .into(mMovieBackdropImage);
 
         Picasso.with(this)
                 .load(moviePosterImageUrl)
-                .placeholder(R.color.colorAccent)
                 .into(mMoviePosterImage);
 
         tvMovieTitle.setText(intent.getStringExtra("title"));
